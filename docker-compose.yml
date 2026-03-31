@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  # ── Open proxy (no authentication) ────────────────────────────────────────
+  proxy:
+    build: .
+    image: socks5-proxy-go:latest
+    container_name: socks5-proxy-go
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+    environment:
+      PROXY_ADDR: "0.0.0.0:1080"
+    # Limit resources – a proxy rarely needs much CPU/RAM.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 64M
+
+  # ── Authenticated proxy (start with: docker compose --profile auth up) ─────
+  proxy-auth:
+    build: .
+    image: socks5-proxy-go:latest
+    container_name: socks5-proxy-go-auth
+    restart: unless-stopped
+    profiles: [auth]
+    ports:
+      - "1081:1080"
+    environment:
+      PROXY_ADDR: "0.0.0.0:1080"
+      PROXY_USER: "${PROXY_USER:-admin}"
+      PROXY_PASS: "${PROXY_PASS:-changeme}"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 64M
